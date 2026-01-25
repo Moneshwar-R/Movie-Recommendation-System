@@ -1,3 +1,10 @@
 *.pkl
 data/
 models/
+.env
+*.env
+__pycache__/
+*.pyc
+node_modules/
+.vscode/
+.idea/
