@@ -206,8 +206,11 @@ const OnboardingPage = ({ navigate, setFavourites }) => {
   useEffect(() => {
     const fetchAllMovies = async () => {
       try {
+        console.log('Fetching movies from:', `${API_BASE}/recommend/all`);
         const response = await fetch(`${API_BASE}/recommend/all`);
+        console.log('Response status:', response.status);
         const movieTitles = await response.json();
+        console.log('Fetched movie titles:', movieTitles);
         // Convert titles to movie objects with basic info
         const movieObjects = movieTitles.map((title, index) => ({
           id: index + 1,
@@ -215,14 +218,14 @@ const OnboardingPage = ({ navigate, setFavourites }) => {
           year: 2020, // Default year
           genres: ['Drama'], // Default genre
           rating: 8.0, // Default rating
-          poster: 'https://via.placeholder.com/300x450/1a1a1a/ffffff?text=' + encodeURIComponent(title)
+          poster: `https://picsum.photos/300/450?random=${index}`
         }));
+        console.log('Created movie objects:', movieObjects.length);
         setAllMovies(movieObjects);
       } catch (error) {
-  console.error('Error fetching movies:', error);
-  setAllMovies([]);
-}
-finally {
+        console.error('Error fetching movies:', error);
+        setAllMovies([]);
+      } finally {
         setLoading(false);
       }
     };
@@ -486,7 +489,7 @@ const HomePage = ({ navigate, user, watchedMovies, setWatchedMovies, favouriteMo
           year: 2020,
           genres: ['Drama'],
           rating: 8.0,
-          poster: 'https://via.placeholder.com/300x450/1a1a1a/ffffff?text=' + encodeURIComponent(title)
+          poster: `https://picsum.photos/300/450?random=${index + 1000}`
         }));
         setAllMovies(movieObjects);
 
@@ -499,9 +502,8 @@ const HomePage = ({ navigate, user, watchedMovies, setWatchedMovies, favouriteMo
         }
       } catch (err) {
         console.error('Error fetching data:', err);
-        // Fallback to hardcoded movies
-        setAllMovies(MOVIES_DB);
-        setRecommendations(MOVIES_DB.map(m => m.title));
+        setAllMovies([]);
+        setRecommendations([]);
       } finally {
         setLoading(false);
       }
@@ -509,44 +511,25 @@ const HomePage = ({ navigate, user, watchedMovies, setWatchedMovies, favouriteMo
     fetchData();
   }, [favouriteMovies]);
 
-  const recommendationMovies = recommendations.map((title, index) => ({
-  id: index,
-  title,
-  year: 2021,
-  genres: ['Drama'],
-  rating: 8.0,
-  poster: `https://via.placeholder.com/300x450/1a1a1a/ffffff?text=${encodeURIComponent(title)}`
-}));
-
-const sections = [
-  { 
-    title: `Because you liked ${favouriteMovies[0]?.title || 'your favourites'}`, 
-    movies: recommendationMovies 
-  },
-  { 
-    title: 'All Movies', 
-    movies: allMovies.slice(0, 50) 
-  }
-];
-
-  
-  // Create recommendation-based movies from API
-  const recommendationMovies = recommendations.slice(0, 10).map((title, index) => ({
+  // Create recommendation-based movies from API (limit to 50 as requested)
+  const recommendationMovies = recommendations.slice(0, 50).map((title, index) => ({
     id: 20000 + index,
     title: title,
     year: 2021,
     genres: ['Drama', 'Action'],
     rating: 8.2,
-    poster: 'https://via.placeholder.com/300x450/1a1a1a/ffffff?text=' + encodeURIComponent(title)
+    poster: `https://picsum.photos/300/450?random=${20000 + index}`
   }));
 
   const sections = [
-    { title: `Because you liked ${favouriteMovies[0]?.title || 'your favorites'}`, movies: recommendationMovies.length > 0 ? recommendationMovies : allMovies.slice(0, 10) },
-    { title: 'All Movies', movies: allMovies.slice(0, 20) },
-    { title: 'Tamil Cinema', movies: combinedTamilMovies.length > 0 ? combinedTamilMovies : allMovies.filter(m => m.id % 7 === 0).slice(0, 10) },
-    { title: 'Popular Picks', movies: allMovies.slice(20, 30) },
-    { title: 'Recent Releases', movies: allMovies.slice(30, 40) },
-    { title: 'Hidden Gems', movies: allMovies.slice(40, 50) },
+    { 
+      title: `Recommended for You`, 
+      movies: recommendationMovies
+    },
+    { 
+      title: 'All Movies', 
+      movies: allMovies.slice(0, 20) 
+    }
   ];
 
   if (loading) {
@@ -637,13 +620,8 @@ const sections = [
             transition={{ delay: sectionIndex * 0.1 }}
           >
             <h2 className="text-2xl font-bold mb-6 text-white/90 px-2">{section.title}</h2>
-            <div className="relative overflow-hidden">
-              <motion.div 
-                className="flex gap-6 pb-4"
-                initial={{ x: 0 }}
-                whileHover={{ x: -20 }}
-                transition={{ type: 'spring', stiffness: 100 }}
-              >
+            <div className="overflow-x-auto scrollbar-hide">
+              <div className="flex gap-6 pb-4 min-w-max">
                 {section.movies.map((movie, movieIndex) => (
                   <motion.div
                     key={`${movie.id}-${movieIndex}`}
@@ -666,7 +644,7 @@ const sections = [
                     />
                   </motion.div>
                 ))}
-              </motion.div>
+              </div>
             </div>
           </motion.div>
         ))}
@@ -684,13 +662,13 @@ const MovieCard = ({ movie, watched, onToggleWatched, sourceMovie }) => {
     <motion.div
       layout
       whileHover={{ scale: 1.05 }}
-      className="group relative overflow-hidden rounded-2xl backdrop-blur-xl bg-white/5 border border-white/10 hover:border-purple-500/50 transition-all duration-300"
+      className="group relative overflow-hidden rounded-2xl backdrop-blur-xl bg-white/5 border border-white/10 hover:border-purple-500/50 transition-all duration-300 w-64"
     >
       <div className="relative">
         <img
           src={movie.poster}
           alt={movie.title}
-          className="w-full aspect-[2/3] object-cover"
+          className="w-full h-96 object-cover"
         />
         <div className="absolute top-2 right-2 flex gap-2">
           <button
@@ -747,12 +725,54 @@ const MovieCard = ({ movie, watched, onToggleWatched, sourceMovie }) => {
 
 // Profile Page
 const ProfilePage = ({ navigate, user, watchedMovies, favouriteMovies }) => {
+  const [allMovies, setAllMovies] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAllMovies = async () => {
+      try {
+        const response = await fetch(`${API_BASE}/recommend/all`);
+        const movieTitles = await response.json();
+        const movieObjects = movieTitles.map((title, index) => ({
+          id: index + 1,
+          title: title,
+          year: 2020,
+          genres: ['Drama'],
+          rating: 8.0,
+          poster: `https://picsum.photos/300/450?random=${index + 2000}`
+        }));
+        setAllMovies(movieObjects);
+      } catch (error) {
+        console.error('Error fetching movies:', error);
+        setAllMovies([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAllMovies();
+  }, []);
+
   const allGenres = favouriteMovies.flatMap(m => m.genres);
   const genreCounts = allGenres.reduce((acc, g) => {
     acc[g] = (acc[g] || 0) + 1;
     return acc;
   }, {});
   const topGenres = Object.entries(genreCounts).sort((a, b) => b[1] - a[1]).slice(0, 3);
+
+  if (loading) {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="min-h-screen flex items-center justify-center bg-black"
+      >
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading profile...</p>
+        </div>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div
@@ -818,10 +838,24 @@ const ProfilePage = ({ navigate, user, watchedMovies, favouriteMovies }) => {
           </div>
         </div>
 
+        <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-8 mb-8">
+          <h3 className="text-2xl font-bold mb-4">Your Favorite Movies</h3>
+          <div className="grid grid-cols-3 md:grid-cols-5 gap-4">
+            {favouriteMovies.map((movie) => (
+              <div key={movie.id} className="relative rounded-lg overflow-hidden group">
+                <img src={movie.poster} alt={movie.title} className="w-full aspect-[2/3] object-cover" />
+                <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <p className="text-sm text-center px-2">{movie.title}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-8">
           <h3 className="text-2xl font-bold mb-4">Watched Movies</h3>
           <div className="grid grid-cols-3 md:grid-cols-5 gap-4">
-            {MOVIES_DB.filter(m => watchedMovies.includes(m.id)).map((movie) => (
+            {allMovies.filter(m => watchedMovies.includes(m.id)).map((movie) => (
               <div key={movie.id} className="relative rounded-lg overflow-hidden group">
                 <img src={movie.poster} alt={movie.title} className="w-full aspect-[2/3] object-cover" />
                 <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
