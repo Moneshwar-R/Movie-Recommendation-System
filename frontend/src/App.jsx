@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const API_BASE = 'http://127.0.0.1:8000';
 
-// Mock movie database for UI
 
 
 // Main App Router
