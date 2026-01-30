@@ -1,5 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+import os
+
 from .routes import auth, recommend, user
 
 app = FastAPI(title="Hybrid Movie Recommender API")
@@ -12,6 +15,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# Mount static files for posters
+# We need to go up one level from backend/ to root, then into data/poster_downloads
+posters_dir = os.path.join(os.path.dirname(__file__), '..', 'data', 'poster_downloads')
+if os.path.exists(posters_dir):
+    app.mount("/posters", StaticFiles(directory=posters_dir), name="posters")
+else:
+    print(f"Warning: Posters directory not found at {posters_dir}")
 
 app.include_router(auth.router)
 app.include_router(recommend.router)

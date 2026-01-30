@@ -27,22 +27,22 @@ const CineMindApp = () => {
           <OnboardingPage key="onboarding" navigate={navigate} setFavourites={setFavouriteMovies} />
         )}
         {currentPage === 'home' && (
-          <HomePage 
-            key="home" 
-            navigate={navigate} 
-            user={user} 
-            watchedMovies={watchedMovies} 
-            setWatchedMovies={setWatchedMovies} 
-            favouriteMovies={favouriteMovies} 
+          <HomePage
+            key="home"
+            navigate={navigate}
+            user={user}
+            watchedMovies={watchedMovies}
+            setWatchedMovies={setWatchedMovies}
+            favouriteMovies={favouriteMovies}
           />
         )}
         {currentPage === 'profile' && (
-          <ProfilePage 
-            key="profile" 
-            navigate={navigate} 
-            user={user} 
-            watchedMovies={watchedMovies} 
-            favouriteMovies={favouriteMovies} 
+          <ProfilePage
+            key="profile"
+            navigate={navigate}
+            user={user}
+            watchedMovies={watchedMovies}
+            favouriteMovies={favouriteMovies}
           />
         )}
       </AnimatePresence>
@@ -208,16 +208,16 @@ const OnboardingPage = ({ navigate, setFavourites }) => {
         console.log('Fetching movies from:', `${API_BASE}/recommend/all`);
         const response = await fetch(`${API_BASE}/recommend/all`);
         console.log('Response status:', response.status);
-        const movieTitles = await response.json();
-        console.log('Fetched movie titles:', movieTitles);
+        const moviesData = await response.json();
+        console.log('Fetched movies data:', moviesData.length);
         // Convert titles to movie objects with basic info
-        const movieObjects = movieTitles.map((title, index) => ({
-          id: index + 1,
-          title: title,
-          year: 2020, // Default year
-          genres: ['Drama'], // Default genre
-          rating: 8.0, // Default rating
-          poster: `https://picsum.photos/300/450?random=${index}`
+        const movieObjects = moviesData.map((movie) => ({
+          id: movie.id,
+          title: movie.title,
+          year: movie.year || 2020, // Default year
+          genres: movie.genres || ['Drama'], // Default genre
+          rating: movie.rating || 8.0, // Default rating
+          poster: movie.poster || `https://via.placeholder.com/300x450?text=${encodeURIComponent(movie.title)}`
         }));
         console.log('Created movie objects:', movieObjects.length);
         setAllMovies(movieObjects);
@@ -234,7 +234,7 @@ const OnboardingPage = ({ navigate, setFavourites }) => {
   const handleSearch = (query) => {
     setSearchQuery(query);
     if (query.trim().length > 0) {
-      const results = allMovies.filter(movie => 
+      const results = allMovies.filter(movie =>
         movie.title.toLowerCase().includes(query.toLowerCase())
       );
       setSearchResults(results.slice(0, 10)); // Limit to 10 results
@@ -324,9 +324,8 @@ const OnboardingPage = ({ navigate, setFavourites }) => {
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.5 + i * 0.1 }}
-                className={`w-16 h-2 rounded-full transition-all duration-500 ${
-                  i < selected.length ? 'bg-gradient-to-r from-purple-500 to-pink-500' : 'bg-white/10'
-                }`}
+                className={`w-16 h-2 rounded-full transition-all duration-500 ${i < selected.length ? 'bg-gradient-to-r from-purple-500 to-pink-500' : 'bg-white/10'
+                  }`}
               />
             ))}
           </div>
@@ -479,16 +478,16 @@ const HomePage = ({ navigate, user, watchedMovies, setWatchedMovies, favouriteMo
       try {
         // Fetch all movies first
         const allMoviesResponse = await fetch(`${API_BASE}/recommend/all`);
-        const movieTitles = await allMoviesResponse.json();
-        
+        const moviesData = await allMoviesResponse.json();
+
         // Convert titles to movie objects
-        const movieObjects = movieTitles.map((title, index) => ({
-          id: index + 1,
-          title: title,
-          year: 2020,
-          genres: ['Drama'],
-          rating: 8.0,
-          poster: `https://picsum.photos/300/450?random=${index + 1000}`
+        const movieObjects = moviesData.map((movie) => ({
+          id: movie.id,
+          title: movie.title,
+          year: movie.year || 2020,
+          genres: movie.genres || ['Drama'],
+          rating: movie.rating || 8.0,
+          poster: movie.poster || `https://via.placeholder.com/300x450?text=${encodeURIComponent(movie.title)}`
         }));
         setAllMovies(movieObjects);
 
@@ -511,23 +510,23 @@ const HomePage = ({ navigate, user, watchedMovies, setWatchedMovies, favouriteMo
   }, [favouriteMovies]);
 
   // Create recommendation-based movies from API (limit to 50 as requested)
-  const recommendationMovies = recommendations.slice(0, 50).map((title, index) => ({
-    id: 20000 + index,
-    title: title,
-    year: 2021,
-    genres: ['Drama', 'Action'],
-    rating: 8.2,
-    poster: `https://picsum.photos/300/450?random=${20000 + index}`
+  const recommendationMovies = recommendations.slice(0, 50).map((movie) => ({
+    id: movie.id,
+    title: movie.title,
+    year: movie.year || 2021,
+    genres: movie.genres || ['Drama', 'Action'],
+    rating: movie.rating || 8.2,
+    poster: movie.poster || `https://via.placeholder.com/300x450?text=${encodeURIComponent(movie.title)}`
   }));
 
   const sections = [
-    { 
-      title: `Recommended for You`, 
+    {
+      title: `Recommended for You`,
       movies: recommendationMovies
     },
-    { 
-      title: 'All Movies', 
-      movies: allMovies.slice(0, 20) 
+    {
+      title: 'All Movies',
+      movies: allMovies.slice(0, 20)
     }
   ];
 
@@ -587,7 +586,7 @@ const HomePage = ({ navigate, user, watchedMovies, setWatchedMovies, favouriteMo
 
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-black/30 border-b border-white/10">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <motion.h1 
+          <motion.h1
             whileHover={{ scale: 1.05 }}
             className="text-2xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent cursor-pointer"
           >
@@ -611,8 +610,8 @@ const HomePage = ({ navigate, user, watchedMovies, setWatchedMovies, favouriteMo
 
       <div className="pt-24 pb-12 px-6">
         {sections.map((section, sectionIndex) => (
-          <motion.div 
-            key={sectionIndex} 
+          <motion.div
+            key={sectionIndex}
             className="mb-12"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -672,9 +671,8 @@ const MovieCard = ({ movie, watched, onToggleWatched, sourceMovie }) => {
         <div className="absolute top-2 right-2 flex gap-2">
           <button
             onClick={onToggleWatched}
-            className={`w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-md transition-all ${
-              watched ? 'bg-green-500' : 'bg-black/50 hover:bg-black/70'
-            }`}
+            className={`w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-md transition-all ${watched ? 'bg-green-500' : 'bg-black/50 hover:bg-black/70'
+              }`}
           >
             {watched ? '✓' : '○'}
           </button>
@@ -731,14 +729,14 @@ const ProfilePage = ({ navigate, user, watchedMovies, favouriteMovies }) => {
     const fetchAllMovies = async () => {
       try {
         const response = await fetch(`${API_BASE}/recommend/all`);
-        const movieTitles = await response.json();
-        const movieObjects = movieTitles.map((title, index) => ({
-          id: index + 1,
-          title: title,
-          year: 2020,
-          genres: ['Drama'],
-          rating: 8.0,
-          poster: `https://picsum.photos/300/450?random=${index + 2000}`
+        const moviesData = await response.json();
+        const movieObjects = moviesData.map((movie) => ({
+          id: movie.id,
+          title: movie.title,
+          year: movie.year || 2020,
+          genres: movie.genres || ['Drama'],
+          rating: movie.rating || 8.0,
+          poster: movie.poster || `https://via.placeholder.com/300x450?text=${encodeURIComponent(movie.title)}`
         }));
         setAllMovies(movieObjects);
       } catch (error) {
