@@ -22,7 +22,9 @@ try:
     intersection_movies = set(poster_ids).intersection(movies_ids)
     print(f"Intersection with movies['id']: {len(intersection_movies)}")
     if len(intersection_movies) > 0:
-        print(f"Example matches: {list(intersection_movies)[:5]}")
+        print(f"Example matches: {list(intersection_movies)[:20]}")
+    else:
+        print("No intersection with movies['id']")
 
     # Check intersection with links['movieId']
     links_movie_ids = set(links['movieId'].dropna().astype(int))
