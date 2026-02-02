@@ -210,17 +210,8 @@ const OnboardingPage = ({ navigate, setFavourites }) => {
         console.log('Response status:', response.status);
         const moviesData = await response.json();
         console.log('Fetched movies data:', moviesData.length);
-        // Convert titles to movie objects with basic info
-        const movieObjects = moviesData.map((movie) => ({
-          id: movie.id,
-          title: movie.title,
-          year: movie.year || 2020, // Default year
-          genres: movie.genres || ['Drama'], // Default genre
-          rating: movie.rating || 8.0, // Default rating
-          poster: movie.poster || `https://via.placeholder.com/300x450?text=${encodeURIComponent(movie.title)}`
-        }));
-        console.log('Created movie objects:', movieObjects.length);
-        setAllMovies(movieObjects);
+        // Movies are already in the correct format from the backend
+        setAllMovies(moviesData);
       } catch (error) {
         console.error('Error fetching movies:', error);
         setAllMovies([]);
@@ -480,16 +471,8 @@ const HomePage = ({ navigate, user, watchedMovies, setWatchedMovies, favouriteMo
         const allMoviesResponse = await fetch(`${API_BASE}/recommend/all`);
         const moviesData = await allMoviesResponse.json();
 
-        // Convert titles to movie objects
-        const movieObjects = moviesData.map((movie) => ({
-          id: movie.id,
-          title: movie.title,
-          year: movie.year || 2020,
-          genres: movie.genres || ['Drama'],
-          rating: movie.rating || 8.0,
-          poster: movie.poster || `https://via.placeholder.com/300x450?text=${encodeURIComponent(movie.title)}`
-        }));
-        setAllMovies(movieObjects);
+        // Movies are already in the correct format from the backend
+        setAllMovies(moviesData);
 
         // Fetch recommendations if user has favorites
         if (favouriteMovies.length > 0) {
@@ -730,15 +713,8 @@ const ProfilePage = ({ navigate, user, watchedMovies, favouriteMovies }) => {
       try {
         const response = await fetch(`${API_BASE}/recommend/all`);
         const moviesData = await response.json();
-        const movieObjects = moviesData.map((movie) => ({
-          id: movie.id,
-          title: movie.title,
-          year: movie.year || 2020,
-          genres: movie.genres || ['Drama'],
-          rating: movie.rating || 8.0,
-          poster: movie.poster || `https://via.placeholder.com/300x450?text=${encodeURIComponent(movie.title)}`
-        }));
-        setAllMovies(movieObjects);
+        // Movies are already in the correct format from the backend
+        setAllMovies(moviesData);
       } catch (error) {
         console.error('Error fetching movies:', error);
         setAllMovies([]);

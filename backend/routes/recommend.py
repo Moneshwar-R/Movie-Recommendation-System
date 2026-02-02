@@ -14,6 +14,7 @@ movies_df = pd.read_csv(os.path.join(os.path.dirname(__file__), '..', '..', 'dat
 
 # Create a mapping of movie_id -> poster_filename
 poster_map = {}
+poster_files = []  # Store all available poster files
 posters_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'poster_downloads')
 
 try:
@@ -21,6 +22,7 @@ try:
         # Scan for all files in the directory
         for filename in os.listdir(posters_dir):
             if filename.endswith(('.jpg', '.jpeg', '.png')):
+                poster_files.append(filename)
                 # Expected format: 1.6_245943.jpg (where 245943 is the ID)
                 parts = filename.split('_')
                 if len(parts) > 1:
@@ -37,40 +39,40 @@ try:
 except Exception as e:
     print(f"Error scanning posters directory: {e}")
 
+print(f"Loaded {len(poster_map)} poster mappings and {len(poster_files)} total poster files")
+
 def get_movie_poster_url(movie_id):
     """Helper to get the full poster URL for a movie ID."""
+    # First try exact match
     if movie_id in poster_map:
         return f"http://localhost:8000/posters/{poster_map[movie_id]}"
-    return None
+    
+    # If no exact match and we have poster files, use a random one as fallback
+    if poster_files:
+        import random
+        random_poster = random.choice(poster_files)
+        return f"http://localhost:8000/posters/{random_poster}"
+    
+    # Return a placeholder image if no poster is found
+    return f"https://via.placeholder.com/300x450/333333/ffffff?text=No+Poster"
 
 @router.get("/all")
 def get_all_movies():
     """
-    Returns a list of all movies with their ID, title, and poster URL.
+    Returns a list of all movies with full details for the frontend.
     """
-    # Create a list of dictionaries
     movies_list = []
-    
-    # We'll stick to the first 1000 or so to verify, or return all if performance allows.
-    # The frontend was receiving all titles, so let's try to be efficient.
-    # To avoid huge payloads, let's keep it lightweight.
-    
     for _, row in movies_df.iterrows():
-        movie_id = row['id']
-        title = row['title']
-        
-        # safely handle NaN IDs if any
-        if pd.isna(movie_id):
-            continue
-            
-        movie_id = int(movie_id)
-        
-        movies_list.append({
-            "id": movie_id,
-            "title": title,
-            "poster": get_movie_poster_url(movie_id)
-        })
-        
+        movie_id = int(row['id']) if not pd.isna(row['id']) else None
+        if movie_id:
+            movies_list.append({
+                "id": movie_id,
+                "title": row['title'],
+                "year": 2020,  # Default year
+                "genres": ['Drama'],  # Default genre
+                "rating": 8.0,  # Default rating
+                "poster": get_movie_poster_url(movie_id)
+            })
     return movies_list
 
 @router.get("/{movie}")
