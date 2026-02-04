@@ -17,8 +17,7 @@ app.add_middleware(
 )
 
 
-# Mount static files for posters
-# We need to go up one level from backend/ to root, then into data/poster_downloads
+
 posters_dir = os.path.join(os.path.dirname(__file__), '..', 'data', 'poster_downloads')
 if os.path.exists(posters_dir):
     app.mount("/posters", StaticFiles(directory=posters_dir), name="posters")
